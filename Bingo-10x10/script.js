@@ -1,8 +1,10 @@
 // Basic game setup
-const letters = ['B', 'I', 'N', 'G', 'O'];  // Letters to find
+const letters = ['B', 'I', 'N', 'G', 'O', 'F', '☠️', '❤️'];  // Letters to find
+const container = document.getElementById("game-container"); // Adjust based on your actual ID or class
+
 let playerTurn = 1;  // Player 1 starts
-let revealedLettersPlayer1 = [];  // Track Player 1's revealed letters (red)
-let revealedLettersPlayer2 = [];  // Track Player 2's revealed letters (blue)
+let revealedLettersPlayer1 = new Set();  // Track Player 1's revealed letters
+let revealedLettersPlayer2 = new Set();  // Track Player 2's revealed letters
 let gameBoard = document.getElementById('board');
 let turnDisplay = document.getElementById('turn');
 let messageDisplay = document.getElementById('message');
@@ -33,9 +35,13 @@ function revealCell(cell, letter) {
     
     // Track the revealed letters for the corresponding player
     if (playerTurn === 1) {
-      revealedLettersPlayer1.push(letter);
+      if (['B', 'I', 'N', 'G', 'O'].includes(letter)) {
+        revealedLettersPlayer1.add(letter);
+      }
     } else {
-      revealedLettersPlayer2.push(letter);
+      if (['B', 'I', 'N', 'G', 'O'].includes(letter)) {
+        revealedLettersPlayer2.add(letter);
+      }
     }
     
     checkWinner();
@@ -48,23 +54,28 @@ function switchTurn() {
   if (playerTurn === 1) {
     playerTurn = 2;
     turnDisplay.textContent = "Player 2's Turn";
+    container.style.backgroundColor = "red"; // Change to Player 2 color
   } else {
     playerTurn = 1;
     turnDisplay.textContent = "Player 1's Turn";
+    container.style.backgroundColor = "blue"; // Change to Player 1 color
   }
 }
 
 // Check if any player has revealed all letters in "BINGO"
 function checkWinner() {
+  const bingoLetters = new Set(['B', 'I', 'N', 'G', 'O']);
+  
   // Check if Player 1 has revealed all 'BINGO' letters
-  if (revealedLettersPlayer1.length >= 5 && letters.every(letter => revealedLettersPlayer1.includes(letter))) {
-    messageDisplay.textContent = "Player 1 Wins!";
+  if ([...bingoLetters].every(letter => revealedLettersPlayer1.has(letter))) {
+    messageDisplay.textContent = "🎉 Player 1 Wins!";
     showPopup();
+    return;
   }
   
   // Check if Player 2 has revealed all 'BINGO' letters
-  if (revealedLettersPlayer2.length >= 5 && letters.every(letter => revealedLettersPlayer2.includes(letter))) {
-    messageDisplay.textContent = "Player 2 Wins!";
+  if ([...bingoLetters].every(letter => revealedLettersPlayer2.has(letter))) {
+    messageDisplay.textContent = "🎉 Player 2 Wins!";
     showPopup();
   }
 }
@@ -78,8 +89,8 @@ function showPopup() {
 function resetGame() {
   // Clear the board
   gameBoard.innerHTML = '';
-  revealedLettersPlayer1 = [];
-  revealedLettersPlayer2 = [];
+  revealedLettersPlayer1.clear();
+  revealedLettersPlayer2.clear();
   playerTurn = 1;
   turnDisplay.textContent = "Player 1's Turn";
   messageDisplay.textContent = '';
