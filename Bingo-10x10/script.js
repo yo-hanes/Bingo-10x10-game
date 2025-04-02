@@ -1,10 +1,12 @@
 // Basic game setup
-const letters = ['B', 'I', 'N', 'G', 'O', 'F', '☠️', '❤️'];  // Letters to find
-const container = document.getElementById("game-container"); // Adjust based on your actual ID or class
+const letters = ['B', 'I', 'N', 'G', 'O', ' ', '☠', '♡'];  // Letters to find
+const container = document.getElementById("game-container");
 
-let playerTurn = 1;  // Player 1 starts
-let revealedLettersPlayer1 = new Set();  // Track Player 1's revealed letters
-let revealedLettersPlayer2 = new Set();  // Track Player 2's revealed letters
+let playerTurn = 1;
+let revealedLettersPlayer1 = new Set();
+let revealedLettersPlayer2 = new Set();
+let skullCounterPlayer1 = 0;
+let skullCounterPlayer2 = 0;
 let gameBoard = document.getElementById('board');
 let turnDisplay = document.getElementById('turn');
 let messageDisplay = document.getElementById('message');
@@ -18,7 +20,6 @@ function createBoard() {
     grid.push(randomLetter);
   }
 
-  // Display grid
   grid.forEach((letter, index) => {
     const cell = document.createElement('div');
     cell.textContent = letter;
@@ -27,80 +28,90 @@ function createBoard() {
   });
 }
 
-// Reveal the clicked cell and check if the game is won
+// Reveal the clicked cell and check for effects
 function revealCell(cell, letter) {
   if (!cell.classList.contains('revealed')) {
     cell.classList.add('revealed');
     cell.classList.add(`player${playerTurn}`);
     
-    // Track the revealed letters for the corresponding player
     if (playerTurn === 1) {
       if (['B', 'I', 'N', 'G', 'O'].includes(letter)) {
         revealedLettersPlayer1.add(letter);
+      }
+      if (letter === '☠') {
+        skullCounterPlayer1++;
+        if (skullCounterPlayer1 >= 3) {
+          messageDisplay.textContent = "Player 1 must do a DARE!";
+          messageDisplay.style.backgroundColor = 'lightcoral'; // Change to your desired color
+          skullCounterPlayer1 = 0;
+        }
       }
     } else {
       if (['B', 'I', 'N', 'G', 'O'].includes(letter)) {
         revealedLettersPlayer2.add(letter);
       }
+      if (letter === '☠') {
+        skullCounterPlayer2++;
+        if (skullCounterPlayer2 >= 3) {
+          messageDisplay.textContent = "Player 2 must do a DARE!";
+          messageDisplay.style.backgroundColor = 'lightcoral'; // Change to your desired color
+          skullCounterPlayer2 = 0;
+        }
+      }
     }
     
-    checkWinner();
-    switchTurn();
+    if (letter !== '♡') {
+      switchTurn();
+    } else {
+      messageDisplay.textContent = `Player ${playerTurn} gets another turn!`;
+      messageDisplay.style.backgroundColor = 'lightgreen'; // Change to your desired color
+    }
+    
   }
+  checkWinner();
 }
 
-// Switch between Player 1 and Player 2
+// Switch between players
 function switchTurn() {
-  if (playerTurn === 1) {
-    playerTurn = 2;
-    turnDisplay.textContent = "Player 2's Turn";
-    container.style.backgroundColor = "red"; // Change to Player 2 color
-  } else {
-    playerTurn = 1;
-    turnDisplay.textContent = "Player 1's Turn";
-    container.style.backgroundColor = "blue"; // Change to Player 1 color
-  }
+  playerTurn = playerTurn === 1 ? 2 : 1;
+  turnDisplay.textContent = `Player ${playerTurn}'s Turn`;
+  turnDisplay.style.color = playerTurn === 1 ? "red" : "blue"; 
+  container.style.backgroundColor = playerTurn === 1 ? "blue" : "red";
+  
 }
 
-// Check if any player has revealed all letters in "BINGO"
+// Check if any player has won
 function checkWinner() {
   const bingoLetters = new Set(['B', 'I', 'N', 'G', 'O']);
-  
-  // Check if Player 1 has revealed all 'BINGO' letters
   if ([...bingoLetters].every(letter => revealedLettersPlayer1.has(letter))) {
     messageDisplay.textContent = "🎉 Player 1 Wins!";
-    showPopup();
-    return;
+    showPopup('Player 1');
   }
-  
-  // Check if Player 2 has revealed all 'BINGO' letters
   if ([...bingoLetters].every(letter => revealedLettersPlayer2.has(letter))) {
     messageDisplay.textContent = "🎉 Player 2 Wins!";
-    showPopup();
+    showPopup('Player 2');
   }
 }
 
-// Show the popup with the reset button
+// Show the popup
 function showPopup() {
   popup.style.display = 'block';
 }
 
 // Reset the game
 function resetGame() {
-  // Clear the board
   gameBoard.innerHTML = '';
   revealedLettersPlayer1.clear();
   revealedLettersPlayer2.clear();
+  skullCounterPlayer1 = 0;
+  skullCounterPlayer2 = 0;
   playerTurn = 1;
   turnDisplay.textContent = "Player 1's Turn";
   messageDisplay.textContent = '';
   popup.style.display = 'none';
-  
-  createBoard(); // Recreate the game board
+  createBoard();
 }
 
-// Start the game
 createBoard();
 
-// Attach the reset button event
 document.querySelector('#popup button').addEventListener('click', resetGame);
